@@ -1,0 +1,321 @@
+# Title: AWS Cloudformation Template to create a 3-tier stack with AWS CFN
+# Create by: rahim
+# Date: 03Sep2023
+
+AWSTemplateFormatVersion: "2010-09-09"
+Description: AWS CloudFormation Template to create a 3-tier stack via AMS CFN.
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Description: Enter Environment Name
+    Default: peasy
+    ConstraintDescription: Recommended to be the project or app name
+
+  myVPC:
+    Type: AWS::EC2::VPC::Id #String
+    Description: VPC CIDR Block
+    Default: vpc-0d5777d3xxxxxxxxx #10.192.0.0/16
+    ConstraintDescription: Must be the VPC Id of an existing Virtual Private Cloud.
+
+  myWebSubnet1cidr:
+    Type: String
+    Default: 172.30.11.0/24
+
+  myWebSubnet2cidr:
+    Type: String
+    Default: 172.30.12.0/24
+
+  myAppSubnet1cidr:
+    Type: String
+    Default: 172.30.13.0/24 
+
+  myAppSubnet2cidr:
+    Type: String
+    Default: 172.30.14.0/24       
+
+  myDBSubnet1cidr:
+    Type: String
+    Default: 172.30.15.0/24  
+
+  myDBSubnet2cidr:
+    Type: String
+    Default: 172.30.16.0/24  
+
+  KeyName:
+    Type: String
+    Default: kp-threetier
+    
+  ProjectCodeTag:
+      Type: String
+      Default: PEASY
+
+  WebTierTag:
+      Type: String
+      Default: WEB
+
+  AppTierTag:
+      Type: String
+      Default: APP
+
+  DbTierTag:
+      Type: String
+      Default: DB
+
+  SecTierTag:
+      Type: String
+      Default: SEC
+
+  EnvironmentTag:
+      Type: String
+      Default: PRD
+      ConstraintDescription: Change according to the environment which is UAT, DEV or PRD
+      
+  EzZoneTag:
+      Type: String
+      Default: EZ
+
+  IzZoneTag:
+      Type: String
+      Default: IZ
+
+Resources:
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: igw-peasy01
+        - Key: Project-Code
+          Value: !Ref ProjectCodeTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+        - Key: Zone
+          Value: !Ref EzZoneTag
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref myVPC
+
+  myPublicWebSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref myVPC
+      CidrBlock: !Ref myWebSubnet1cidr
+      MapPublicIpOnLaunch: true
+      AvailabilityZone:  !Select [ 0, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: sub-a-peasy-prdezweb-web
+        - Key: Project-Code
+          Value: !Ref ProjectCodeTag
+        - Key: Tier
+          Value: !Ref WebTierTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+        - Key: Zone
+          Value: !Ref EzZoneTag         
+
+  myPublicWebSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref myVPC
+      CidrBlock: !Ref myWebSubnet2cidr
+      MapPublicIpOnLaunch: true
+      AvailabilityZone:  !Select [ 1, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: sub-b-peasy-prdezweb-web
+        - Key: Project-Code
+          Value: !Ref ProjectCodeTag
+        - Key: Tier
+          Value: !Ref WebTierTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+        - Key: Zone
+          Value: !Ref EzZoneTag          
+
+  myPrivateAppSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref myVPC
+      CidrBlock: !Ref myAppSubnet1cidr
+      AvailabilityZone:  !Select [ 0, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: sub-a-peasy-prdezapp-app
+        - Key: Project-Code
+          Value: !Ref ProjectCodeTag
+        - Key: Tier
+          Value: !Ref AppTierTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+        - Key: Zone
+          Value: !Ref EzZoneTag   
+
+  myPrivateAppSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref myVPC
+      CidrBlock: !Ref myAppSubnet2cidr
+      AvailabilityZone:  !Select [ 1, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: sub-b-peasy-prdezapp-app
+        - Key: Project-Code
+          Value: !Ref ProjectCodeTag
+        - Key: Tier
+          Value: !Ref AppTierTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+        - Key: Zone
+          Value: !Ref EzZoneTag          
+
+  myPrivateDBSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref myVPC
+      CidrBlock: !Ref myDBSubnet1cidr
+      AvailabilityZone:  !Select [ 0, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: sub-a-peasy-prdezdb-db
+        - Key: Project-Code
+          Value: !Ref ProjectCodeTag
+        - Key: Tier
+          Value: !Ref DbTierTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+        - Key: Zone
+          Value: !Ref EzZoneTag          
+
+  myPrivateDBSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref myVPC
+      CidrBlock: !Ref myDBSubnet2cidr
+      AvailabilityZone:  !Select [ 1, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: sub-b-peasy-prdezdb-db
+        - Key: Project-Code
+          Value: !Ref ProjectCodeTag
+        - Key: Tier
+          Value: !Ref DbTierTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+        - Key: Zone
+          Value: !Ref EzZoneTag         
+       
+  myPublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref myVPC
+      Tags:
+        - Key: Name
+          Value: rt-peasy-public-01
+        - Key: Project-Code
+          Value: !Ref ProjectCodeTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+        - Key: Zone
+          Value: !Ref EzZoneTag  
+
+  myPrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref myVPC
+      Tags:
+        - Key: Name
+          Value: rt-peasy-private-01
+        - Key: Project-Code
+          Value: !Ref ProjectCodeTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+        - Key: Zone
+          Value: !Ref EzZoneTag  
+
+  myRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref myPublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  myPublicWebSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: myPublicWebSubnet1
+      RouteTableId:
+        Ref: myPublicRouteTable
+
+  myPublicWebSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: myPublicWebSubnet2
+      RouteTableId:
+        Ref: myPublicRouteTable
+
+  myPrivateAppSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: myPrivateAppSubnet1
+      RouteTableId:
+        Ref: myPrivateRouteTable
+
+  myPrivateAppSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: myPrivateAppSubnet2
+      RouteTableId:
+        Ref: myPrivateRouteTable 
+
+  myPrivateDBSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: myPrivateDBSubnet1
+      RouteTableId:
+        Ref: myPrivateRouteTable
+
+  myPrivateDBSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: myPrivateDBSubnet2
+      RouteTableId:
+        Ref: myPrivateRouteTable
+
+  NATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NATGatewayEIP.AllocationId
+      SubnetId: !Ref myPublicWebSubnet1
+      Tags:
+        - Key: Name
+          Value: natgw-peasy01
+        - Key: Project-Code
+          Value: !Ref ProjectCodeTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+        - Key: Zone
+          Value: !Ref EzZoneTag  
+
+  NATGatewayEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  RouteNATGateway:
+    DependsOn: NATGateway
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref myPrivateRouteTable
+      DestinationCidrBlock: '0.0.0.0/0'
+      NatGatewayId: !Ref NATGateway
